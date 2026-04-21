@@ -540,8 +540,17 @@ function saveFields(){
     d.mt_b=parseInt(document.getElementById('mt_b').value)||0;
     d.mt_m=parseInt(document.getElementById('mt_m').value)||0;
   }
-  d.li_dm=parseInt(document.getElementById('li_dm').value)||0;
-  d.li_ho=parseInt(document.getElementById('li_ho').value)||0;
+  // LinkedIn: använd Sheets-data för live-månader om den finns
+  if(sheetsData[cur]&&sheetsData[cur].li_dm>0){
+    d.li_dm=sheetsData[cur].li_dm;
+  } else {
+    d.li_dm=parseInt(document.getElementById('li_dm').value)||0;
+  }
+  if(sheetsData[cur]&&sheetsData[cur].li_ho>0){
+    d.li_ho=sheetsData[cur].li_ho;
+  } else {
+    d.li_ho=parseInt(document.getElementById('li_ho').value)||0;
+  }
   if(!d.prods)d.prods=emptyProds();
   PROD_FIELDS.forEach(f=>{d.prods[f.id]=parseFloat(document.getElementById(f.id).value)||0;});
   persist();
@@ -609,7 +618,8 @@ function load(m){
   set('mt_a', showMt.mt_a||0);
   set('mt_b', showMt.mt_b||0);
   set('mt_m', showMt.mt_m||0);
-  set('li_dm',d.li_dm);set('li_ho',d.li_ho);
+  set('li_dm', sheetsData[m]&&sheetsData[m].li_dm>0 ? sheetsData[m].li_dm : d.li_dm);
+  set('li_ho', sheetsData[m]&&sheetsData[m].li_ho>0 ? sheetsData[m].li_ho : d.li_ho);
 
   const p=d.prods||{};
   PROD_FIELDS.forEach(f=>{
