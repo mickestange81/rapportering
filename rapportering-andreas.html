@@ -110,6 +110,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input type="number" id="moten" placeholder="0" min="1">
       <div class="error-msg" id="err-moten">Fyll i antal möten</div>
     </div>
+    <div class="field">
+      <label>Bokat med (företag/person)</label>
+      <input type="text" id="moteskontakt" placeholder="t.ex. Volvo, Anna Svensson…">
+    </div>
   </div>
 
   <button class="submit-btn" id="submitBtn" onclick="submitForm()">
@@ -187,6 +191,7 @@ async function submitForm() {
     belopp: typ === 'Affär' ? Number(document.getElementById('belopp').value) : 0,
     grafiska: typ === 'Affär' ? Number(document.getElementById('grafiska').value || 0) : 0,
     moten: typ === 'Möte' ? Number(document.getElementById('moten').value) : 0,
+    moteskontakt: typ === 'Möte' ? document.getElementById('moteskontakt').value : '',
   };
 
   // Sätt knapp i laddningsläge
@@ -223,7 +228,7 @@ function showSuccess(typ, payload) {
   document.getElementById('successCard').style.display = 'block';
   const msg = typ === 'Affär'
     ? `${payload.produkt} – ${payload.belopp.toLocaleString('sv-SE')} kr registrerat.`
-    : `${payload.moten} möte(n) registrerat.`;
+    : `${payload.moten} möte(n) med ${payload.moteskontakt||'–'} registrerat.`;
   document.getElementById('successMsg').textContent = msg;
 }
 
@@ -234,6 +239,7 @@ function resetForm() {
   document.getElementById('btnText').style.display = 'block';
   document.getElementById('spinner').style.display = 'none';
   document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
+  document.getElementById('moteskontakt').value = '';
   document.querySelectorAll('input[type=radio]').forEach(i => i.checked = false);
   document.getElementById('produkt').value = '';
   document.getElementById('sectionAffar').classList.remove('visible');
