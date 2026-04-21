@@ -530,13 +530,15 @@ function saveFields(){
   d.fC=parseFloat(document.getElementById('fC').value)||25000;
   d.pC=parseFloat(document.getElementById('pC').value)||0;
   d.active=document.getElementById('activeMonth').checked;
-  d.mt_a=parseInt(document.getElementById('mt_a').value)||0;
-  d.mt_b=parseInt(document.getElementById('mt_b').value)||0;
-  d.mt_m=parseInt(document.getElementById('mt_m').value)||0;
-  // Skydda Sheets-mötesdata från att skrivas över om fälten är tomma
+  // Möten: använd alltid Sheets-data för live-månader om den finns
   if(sheetsData[cur]){
-    if(!document.getElementById('mt_a').value) d.mt_a=sheetsData[cur].mt_a||0;
-    if(!document.getElementById('mt_b').value) d.mt_b=sheetsData[cur].mt_b||0;
+    d.mt_a=sheetsData[cur].mt_a||0;
+    d.mt_b=sheetsData[cur].mt_b||0;
+    d.mt_m=sheetsData[cur].mt_m||0;
+  } else {
+    d.mt_a=parseInt(document.getElementById('mt_a').value)||0;
+    d.mt_b=parseInt(document.getElementById('mt_b').value)||0;
+    d.mt_m=parseInt(document.getElementById('mt_m').value)||0;
   }
   d.li_dm=parseInt(document.getElementById('li_dm').value)||0;
   d.li_ho=parseInt(document.getElementById('li_ho').value)||0;
@@ -602,7 +604,11 @@ function load(m){
   document.getElementById('fC').value=d.fC;
   set('pC',d.pC);
   document.getElementById('activeMonth').checked=d.active;
-  set('mt_a',d.mt_a);set('mt_b',d.mt_b);set('mt_m',d.mt_m);
+  // Visa Sheets-mötesdata om tillgänglig, annars md-data
+  const showMt = sheetsData[m] ? sheetsData[m] : d;
+  set('mt_a', showMt.mt_a||0);
+  set('mt_b', showMt.mt_b||0);
+  set('mt_m', showMt.mt_m||0);
   set('li_dm',d.li_dm);set('li_ho',d.li_ho);
 
   const p=d.prods||{};
