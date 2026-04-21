@@ -467,7 +467,7 @@ async function fetchSheets(){
         if(!datum)return;
         const month=new Date(datum).getMonth();
         if(month<3)return;
-        if(!sheetsData[month])sheetsData[month]={aS:0,bS:0,mS:0,aG:0,bG:0,mt_a:0,mt_b:0,dm:0,ho:0,by:0};
+        if(!sheetsData[month])sheetsData[month]={aS:0,bS:0,mS:0,aG:0,bG:0,mt_a:0,mt_b:0,mt_m:0,dm:0,ho:0,by:0,li_dm:0,li_ho:0};
         if(typ==='Affär'){
           const cat=prodToCat(produkt);
           sheetsData[month][cat]+=belopp;
@@ -477,6 +477,12 @@ async function fetchSheets(){
         } else if(typ==='Möte'){
           if(saljare==='Andreas')sheetsData[month].mt_a+=moten;
           else if(saljare==='Bernardo')sheetsData[month].mt_b+=moten;
+          else if(saljare==='Mikael')sheetsData[month].mt_m+=moten;
+        } else if(typ==='LinkedIn'){
+          const li_dm=parseInt(row[8])||0;
+          const li_ho=parseInt(row[9])||0;
+          if(li_dm>0)sheetsData[month].li_dm=li_dm;
+          if(li_ho>0)sheetsData[month].li_ho=li_ho;
         }
         if(!md[month].isHistorical) md[month].active=true;
       });
@@ -484,6 +490,9 @@ async function fetchSheets(){
         if(sheetsData[i]){
           md[i].mt_a=sheetsData[i].mt_a||0;
           md[i].mt_b=sheetsData[i].mt_b||0;
+          md[i].mt_m=sheetsData[i].mt_m||0;
+          if(sheetsData[i].li_dm>0)md[i].li_dm=sheetsData[i].li_dm;
+          if(sheetsData[i].li_ho>0)md[i].li_ho=sheetsData[i].li_ho;
         }
       }
       el.textContent='✓ Synkad '+new Date().toLocaleTimeString('sv-SE');
