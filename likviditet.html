@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Likviditet — Commercial Insights</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e14;
+    --surface: #13161f;
+    --surface2: #1a1e2b;
+    --border: #222738;
+    --accent: #4f8ef7;
+    --green: #2dd882;
+    --red: #f05c5c;
+    --yellow: #f5c842;
+    --text: #dde3f0;
+    --muted: #5a6280;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 32px 24px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 36px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+  }
+
+  .kpi-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    margin: 8px 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  #saldo-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    width: 100%;
+    letter-spacing: -0.02em;
+  }
+
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s 0.2s ease both;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .legend-line {
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+  }
+
+  .form-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 110px 150px 1fr 130px 42px;
+    gap: 10px;
+    align-items: end;
+    margin-top: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input,
+  .field select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--accent);
+  }
+
+  .field select.in { color: var(--green); }
+  .field select.out { color: var(--red); }
+
+  .btn-add {
+    background: var(--accent);
+    border: none;
+    border-radius: 7px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    height: 36px;
+    width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  .btn-add:hover { opacity: 0.85; transform: scale(1.05); }
+
+  .warning-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .warning-row label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .warning-row input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--yellow);
+    padding: 5px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 110px;
+    outline: none;
+  }
+
+  .posts-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    animation: fadeUp 0.5s 0.4s ease both;
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .post-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: var(--surface2);
+    transition: background 0.15s;
+  }
+
+  .post-item:hover { background: #1f2436; }
+
+  .post-date { color: var(--muted); min-width: 65px; }
+  .post-sign { min-width: 14px; font-weight: 700; }
+  .post-desc { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .post-amount { font-weight: 700; }
+
+  .btn-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .btn-remove:hover { color: var(--red); }
+
+  .empty-msg {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-top: 14px;
+    font-style: italic;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .form-row .field:nth-child(3) { grid-column: span 2; }
+    .form-row .btn-add { grid-column: span 2; width: 100%; height: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Commercial Insights Sweden AB</div>
+  <h1>Likviditetsöverblick</h1>
+</header>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="label">Saldo idag</div>
+    <input id="saldo-input" type="text" placeholder="0" oninput="onSaldoChange(this.value)" />
+    <div class="kpi-sub">kr</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Lägsta punkt (90 dagar)</div>
+    <div class="kpi-value" id="kpi-min">—</div>
+    <div class="kpi-sub" id="kpi-min-date"></div>
+  </div>
+  <div class="kpi">
+    <div class="label">Pengarna tar slut</div>
+    <div class="kpi-value" id="kpi-runway">— </div>
+    <div class="kpi-sub" id="kpi-runway-sub"></div>
+  </div>
+</div>
+
+<div class="chart-wrap">
+  <div class="label">Saldoprognos — 90 dagar</div>
+  <canvas id="chart" height="200"></canvas>
+  <div class="chart-legend">
+    <div class="legend-item"><div class="legend-line" style="background:var(--red);"></div> Nollgräns</div>
+    <div class="legend-item"><div class="legend-line" style="background:var(--yellow); border-top: 2px dashed var(--yellow); height:0;"></div> Varningsnivå</div>
+  </div>
+</div>
+
+<div class="form-wrap">
+  <div class="label">Lägg till post</div>
+  <div class="form-row">
+    <div class="field">
+      <label>Typ</label>
+      <select id="f-type" class="in" onchange="this.className=this.value">
+        <option value="in">+ Intäkt</option>
+        <option value="out">− Utgift</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Datum</label>
+      <input type="date" id="f-date" />
+    </div>
+    <div class="field">
+      <label>Beskrivning</label>
+      <input type="text" id="f-desc" placeholder="t.ex. Kundfaktura Kempower" onkeydown="if(event.key==='Enter')addPost()" />
+    </div>
+    <div class="field">
+      <label>Belopp (kr)</label>
+      <input type="text" id="f-amount" placeholder="50 000" onkeydown="if(event.key==='Enter')addPost()" />
+    </div>
+    <button class="btn-add" onclick="addPost()">+</button>
+  </div>
+  <div class="warning-row">
+    <label>Varningsnivå (kr):</label>
+    <input type="text" id="warning-input" value="50000" oninput="onWarningChange(this.value)" />
+  </div>
+</div>
+
+<div class="posts-wrap">
+  <div class="label">Poster (<span id="post-count">0</span>)</div>
+  <div id="post-list" class="post-list"></div>
+  <div id="empty-msg" class="empty-msg">Inga poster ännu — lägg till intäkter och utgifter ovan.</div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let state = {
+  saldo: "",
+  warning: "50000",
+  posts: []
+};
+
+// ── Persist ────────────────────────────────────────────
+function save() {
+  localStorage.setItem("ci_likviditet", JSON.stringify(state));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem("ci_likviditet");
+    if (raw) state = JSON.parse(raw);
+  } catch(e) {}
+}
+
+// ── Helpers ────────────────────────────────────────────
+function parseSEK(str) {
+  return Number(String(str).replace(/\s/g, "").replace(/,/g, ".")) || 0;
+}
+
+function formatSEK(n) {
+  return new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK", maximumFractionDigits: 0 }).format(n);
+}
+
+function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function addDaysStr(dateStr, days) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+}
+
+function fmtDate(dateStr) {
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+}
+
+// ── Chart ──────────────────────────────────────────────
+let chart = null;
+
+function buildChartData() {
+  const start = parseSEK(state.saldo);
+  const today = todayStr();
+  const days = 90;
+  const labels = [], values = [], rawDates = [];
+  let running = start;
+
+  for (let i = 0; i <= days; i++) {
+    const date = addDaysStr(today, i);
+    state.posts.filter(p => p.date === date).forEach(p => {
+      running += p.type === "in" ? p.amount : -p.amount;
+    });
+    labels.push(fmtDate(date));
+    values.push(running);
+    rawDates.push(date);
+  }
+  return { labels, values, rawDates };
+}
+
+function renderChart() {
+  const { labels, values } = buildChartData();
+  const warning = parseSEK(state.warning);
+
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  if (chart) chart.destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, "rgba(79,142,247,0.22)");
+  gradient.addColorStop(1, "rgba(79,142,247,0.01)");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: "#4f8ef7",
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "#4f8ef7"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#13161f",
+          borderColor: "#222738",
+          borderWidth: 1,
+          titleColor: "#5a6280",
+          bodyColor: "#dde3f0",
+          titleFont: { family: "'IBM Plex Mono'" },
+          bodyFont: { family: "'IBM Plex Mono'", weight: "700", size: 14 },
+          callbacks: {
+            label: ctx => formatSEK(ctx.parsed.y)
+          }
+        },
+        annotation: {}
+      },
+      scales: {
+        x: {
+          ticks: { color: "#5a6280", font: { family: "'IBM Plex Mono'", size: 10 }, maxTicksLimit: 7 },
+          grid: { color: "#1a1e2b" },
+          border: { display: false }
+        },
+        y: {
+          ticks: { color: "#5a6280", font: { family: "'IBM Plex Mono'", size: 10 }, callback: v => `${Math.round(v/1000)}k` },
+          grid: { color: "#1a1e2b" },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      id: "refLines",
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        function drawLine(yVal, color, dash) {
+          const y = scales.y.getPixelForValue(yVal);
+          if (y < chartArea.top || y > chartArea.bottom) return;
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash(dash);
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.restore();
+        }
+        drawLine(0, "#f05c5c", [5, 4]);
+        if (warning > 0) drawLine(warning, "#f5c842", [5, 4]);
+      }
+    }]
+  });
+}
+
+// ── KPIs ───────────────────────────────────────────────
+function updateKPIs() {
+  const { values, rawDates, labels } = buildChartData();
+  const warning = parseSEK(state.warning);
+
+  // Min point
+  let minVal = Infinity, minLabel = "", minDate = "";
+  values.forEach((v, i) => { if (v < minVal) { minVal = v; minLabel = labels[i]; minDate = rawDates[i]; }});
+
+  const minEl = document.getElementById("kpi-min");
+  minEl.textContent = minVal === Infinity ? "—" : formatSEK(minVal);
+  minEl.style.color = minVal < 0 ? "#f05c5c" : minVal < warning ? "#f5c842" : "#dde3f0";
+  document.getElementById("kpi-min-date").textContent = minLabel;
+
+  // Runway
+  const runwayIdx = values.findIndex(v => v <= 0);
+  const warningIdx = values.findIndex(v => v <= warning && v > 0);
+
+  const runwayEl = document.getElementById("kpi-runway");
+  const runwaySubEl = document.getElementById("kpi-runway-sub");
+
+  if (runwayIdx !== -1) {
+    runwayEl.textContent = labels[runwayIdx];
+    runwayEl.style.color = "#f05c5c";
+    runwaySubEl.textContent = "Underskott inom 90 dagar";
+  } else {
+    runwayEl.textContent = "> 90 dagar";
+    runwayEl.style.color = "#2dd882";
+    if (warningIdx !== -1) {
+      runwaySubEl.textContent = `⚠ Under ${formatSEK(warning)}: ${labels[warningIdx]}`;
+      runwaySubEl.style.color = "#f5c842";
+    } else {
+      runwaySubEl.textContent = "Inga underskott";
+      runwaySubEl.style.color = "#5a6280";
+    }
+  }
+
+  // Saldo input color
+  const saldoVal = parseSEK(state.saldo);
+  const inp = document.getElementById("saldo-input");
+  inp.style.color = saldoVal <= 0 ? "#f05c5c" : saldoVal < warning ? "#f5c842" : "#2dd882";
+}
+
+// ── Posts list ─────────────────────────────────────────
+function renderPosts() {
+  const list = document.getElementById("post-list");
+  const empty = document.getElementById("empty-msg");
+  const count = document.getElementById("post-count");
+
+  const sorted = [...state.posts].sort((a, b) => a.date.localeCompare(b.date));
+  count.textContent = sorted.length;
+
+  if (sorted.length === 0) {
+    list.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+
+  empty.style.display = "none";
+  list.innerHTML = sorted.map(p => `
+    <div class="post-item">
+      <span class="post-date">${fmtDate(p.date)}</span>
+      <span class="post-sign" style="color:${p.type==='in'?'#2dd882':'#f05c5c'}">${p.type==='in'?'+':'−'}</span>
+      <span class="post-desc">${p.desc || '—'}</span>
+      <span class="post-amount" style="color:${p.type==='in'?'#2dd882':'#f05c5c'}">${formatSEK(p.amount)}</span>
+      <button class="btn-remove" onclick="removePost(${p.id})">×</button>
+    </div>
+  `).join("");
+}
+
+// ── Actions ────────────────────────────────────────────
+function refresh() {
+  renderChart();
+  updateKPIs();
+  renderPosts();
+}
+
+function onSaldoChange(val) {
+  state.saldo = val;
+  save();
+  refresh();
+}
+
+function onWarningChange(val) {
+  state.warning = val;
+  save();
+  refresh();
+}
+
+function addPost() {
+  const type = document.getElementById("f-type").value;
+  const date = document.getElementById("f-date").value;
+  const desc = document.getElementById("f-desc").value.trim();
+  const amountStr = document.getElementById("f-amount").value;
+  const amount = parseSEK(amountStr);
+
+  if (!date || !amount) return;
+
+  state.posts.push({ id: Date.now(), type, date, desc, amount });
+  save();
+  refresh();
+
+  document.getElementById("f-desc").value = "";
+  document.getElementById("f-amount").value = "";
+  document.getElementById("f-desc").focus();
+}
+
+function removePost(id) {
+  state.posts = state.posts.filter(p => p.id !== id);
+  save();
+  refresh();
+}
+
+// ── Init ───────────────────────────────────────────────
+load();
+
+// Set default date to tomorrow
+document.getElementById("f-date").value = addDaysStr(todayStr(), 1);
+
+// Restore inputs
+document.getElementById("saldo-input").value = state.saldo;
+document.getElementById("warning-input").value = state.warning;
+
+refresh();
+</script>
+</body>
+</html>
