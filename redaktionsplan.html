@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redaktionsplan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #f0ede8;
+    --surface: #ffffff;
+    --teal: #009999;
+    --teal-light: #e0f5f5;
+    --pink: #f4b8b8;
+    --pink-hover: #e89898;
+    --blue: #a8d8f0;
+    --blue-hover: #7fc4e8;
+    --green: #b8e8c8;
+    --yellow: #f5e8a0;
+    --border: #d8d0c8;
+    --text: #1a1a1a;
+    --muted: #888880;
+    --modal-bg: rgba(10,10,10,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--teal);
+    letter-spacing: -0.5px;
+    margin-right: 8px;
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+  }
+
+  .edition-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  #edition-input {
+    border: none;
+    background: transparent;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    width: 180px;
+    outline: none;
+    border-bottom: 1px dashed var(--border);
+    padding: 2px 4px;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: white;
+  }
+  .btn-primary:hover { background: #007a7a; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+  .btn-danger {
+    background: #fde8e8;
+    color: #c0392b;
+    border: 1.5px solid #f5c0c0;
+  }
+  .btn-danger:hover { background: #f5c0c0; }
+
+  /* TOOLBAR */
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 24px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+
+  .color-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+  }
+  .color-btn:hover { transform: scale(1.15); }
+  .color-btn.active { border-color: var(--text); }
+
+  .toolbar-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+  .page-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  /* SPREAD GRID */
+  .spreads-container {
+    padding: 32px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .spreads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  /* SPREAD PAIR */
+  .spread {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .spread:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+  .spread-header {
+    background: #f8f6f2;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+  }
+
+  .spread-number {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .spread-pages {
+    display: flex;
+    gap: 0;
+  }
+
+  /* PAGE */
+  .page {
+    flex: 1;
+    min-height: 160px;
+    padding: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: filter 0.15s;
+    border: none;
+    background: var(--pink);
+  }
+
+  .page:first-child { border-right: 1.5px solid var(--border); }
+
+  .page:hover { filter: brightness(0.93); }
+
+  .page.color-pink { background: var(--pink); }
+  .page.color-blue { background: var(--blue); }
+  .page.color-green { background: var(--green); }
+  .page.color-yellow { background: var(--yellow); }
+  .page.color-white { background: #ffffff; }
+  .page.color-empty { background: #f0ede8; }
+
+  .page-number {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: rgba(0,0,0,0.3);
+  }
+
+  .page-content {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .page-type-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: rgba(255,255,255,0.5);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-bottom: 5px;
+  }
+
+  .page-note {
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.7;
+    line-height: 1.3;
+  }
+
+  .add-spread-btn {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    gap: 8px;
+    background: transparent;
+  }
+  .add-spread-btn:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+    background: var(--teal-light);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--modal-bg);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: translateY(10px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  .modal-page-info {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus { border-color: var(--teal); }
+
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .color-option {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .color-option:hover { transform: scale(1.1); }
+  .color-option.selected { border-color: var(--text); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+
+  /* LEGEND */
+  .legend {
+    padding: 0 24px 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* EXPORT */
+  .stats-bar {
+    padding: 0 24px 24px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 12px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    display: block;
+    color: var(--teal);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* IFC / IBC */
+  .page.ifc { background: #f8f6f2; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">redplan</span>
+  <div class="header-divider"></div>
+  <span class="edition-label" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;">Utgåva:</span>
+  <input id="edition-input" type="text" placeholder="t.ex. HO #3 2025" />
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="exportJSON()">↓ Exportera</button>
+    <button class="btn btn-ghost" onclick="importJSON()">↑ Importera</button>
+    <button class="btn btn-primary" onclick="saveToStorage()">Spara</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="toolbar-label">Sidtyp</span>
+  <select id="global-type" style="font-family:'DM Mono',monospace;font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;">
+    <option value="">Välj typ...</option>
+    <option>Redaktionell</option>
+    <option>Annons</option>
+    <option>Helsida</option>
+    <option>Halvsida</option>
+    <option>Uppslag</option>
+    <option>Innehåll</option>
+    <option>Baksidesannons</option>
+    <option>Omslag</option>
+    <option>Tom</option>
+  </select>
+  <div class="toolbar-divider"></div>
+  <span class="toolbar-label">Färg</span>
+  <div id="active-color-btn" class="color-btn active" style="background:var(--pink)" data-color="pink" onclick="setActiveColor('pink',this)" title="Rosa"></div>
+  <div class="color-btn" style="background:var(--blue)" data-color="blue" onclick="setActiveColor('blue',this)" title="Blå"></div>
+  <div class="color-btn" style="background:var(--green)" data-color="green" onclick="setActiveColor('green',this)" title="Grön"></div>
+  <div class="color-btn" style="background:var(--yellow)" data-color="yellow" onclick="setActiveColor('yellow',this)" title="Gul"></div>
+  <div class="color-btn" style="background:#ffffff;border:1.5px solid var(--border);" data-color="white" onclick="setActiveColor('white',this)" title="Vit"></div>
+  <div class="color-btn" style="background:#f0ede8;border:1.5px solid var(--border);" data-color="empty" onclick="setActiveColor('empty',this)" title="Tom"></div>
+
+  <span id="page-count-display" class="page-count"></span>
+</div>
+
+<div class="spreads-container">
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--pink)"></div> Redaktionell</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--blue)"></div> Annons</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--green)"></div> Övrigt</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--yellow)"></div> Kampanj</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fff;border:1px solid #ccc"></div> Tom</div>
+  </div>
+
+  <div class="spreads-grid" id="spreads-grid"></div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Redigera sida</h2>
+    <div class="modal-page-info" id="modal-page-info"></div>
+    <div class="field">
+      <label>Innehåll / Annonsör</label>
+      <input type="text" id="modal-title" placeholder="t.ex. Volvo Penta annons" />
+    </div>
+    <div class="field">
+      <label>Sidtyp</label>
+      <select id="modal-type">
+        <option value="">—</option>
+        <option>Redaktionell</option>
+        <option>Annons</option>
+        <option>Helsida</option>
+        <option>Halvsida</option>
+        <option>Uppslag</option>
+        <option>Innehåll</option>
+        <option>Baksidesannons</option>
+        <option>Omslag</option>
+        <option>Tom</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Anteckning</label>
+      <textarea id="modal-note" placeholder="Extra info, kontaktperson, status..."></textarea>
+    </div>
+    <div class="field">
+      <label>Färg</label>
+      <div class="color-picker">
+        <div class="color-option selected" style="background:var(--pink)" data-color="pink" onclick="selectModalColor('pink',this)"></div>
+        <div class="color-option" style="background:var(--blue)" data-color="blue" onclick="selectModalColor('blue',this)"></div>
+        <div class="color-option" style="background:var(--green)" data-color="green" onclick="selectModalColor('green',this)"></div>
+        <div class="color-option" style="background:var(--yellow)" data-color="yellow" onclick="selectModalColor('yellow',this)"></div>
+        <div class="color-option" style="background:#fff;border:1px solid #ccc" data-color="white" onclick="selectModalColor('white',this)"></div>
+        <div class="color-option" style="background:#f0ede8;border:1px solid #ccc" data-color="empty" onclick="selectModalColor('empty',this)"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="clearPage()">Rensa</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-primary" onclick="savePage()">Spara</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)" />
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let spreads = [];
+let activeColor = 'pink';
+let editingPageId = null;
+let modalColor = 'pink';
+
+const STORAGE_KEY = 'redaktionsplan_v1';
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const data = JSON.parse(saved);
+    spreads = data.spreads || [];
+    document.getElementById('edition-input').value = data.edition || '';
+  } else {
+    // Default: Cover + 10 spreads = 22 pages
+    spreads = [];
+    // Spread 0: IFC + Page 1
+    spreads.push({ id: uid(), pages: [
+      { id: uid(), title: '', type: 'Omslag', note: '', color: 'empty', label: 'IFC' },
+      { id: uid(), title: 'Bjärnums Stålprodukter Aktiebolag', type: 'Annons', note: '', color: 'pink' }
+    ]});
+    for (let i = 0; i < 9; i++) {
+      spreads.push({ id: uid(), pages: [
+        { id: uid(), title: '', type: '', note: '', color: 'pink' },
+        { id: uid(), title: '', type: '', note: '', color: 'pink' }
+      ]});
+    }
+  }
+  render();
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2,10);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  const grid = document.getElementById('spreads-grid');
+  grid.innerHTML = '';
+
+  let pageNum = 0;
+
+  spreads.forEach((spread, si) => {
+    const el = document.createElement('div');
+    el.className = 'spread';
+    el.dataset.spreadId = spread.id;
+
+    const header = document.createElement('div');
+    header.className = 'spread-header';
+
+    const nums = spread.pages.map((_,i) => {
+      if (si === 0 && i === 0) return 'IFC';
+      pageNum++;
+      return pageNum;
+    });
+
+    header.innerHTML = `
+      <span class="spread-number">Uppslag ${si + 1}</span>
+      <span>· Sid ${nums.join(' & ')}</span>
+      <span style="margin-left:auto;cursor:pointer;color:var(--muted)" onclick="removeSpread('${spread.id}')" title="Ta bort uppslag">✕</span>
+    `;
+    el.appendChild(header);
+
+    const pagesEl = document.createElement('div');
+    pagesEl.className = 'spread-pages';
+
+    spread.pages.forEach((page, pi) => {
+      const p = document.createElement('div');
+      p.className = `page color-${page.color || 'pink'}`;
+      if (si === 0 && pi === 0) p.classList.add('ifc');
+      p.onclick = () => openModal(spread.id, page.id);
+
+      let inner = '';
+      if (page.type) inner += `<div class="page-type-badge">${page.type}</div>`;
+      if (page.title) inner += `<div class="page-content">${escHtml(page.title)}</div>`;
+      if (page.note) inner += `<div class="page-note">${escHtml(page.note)}</div>`;
+
+      const pn = si === 0 && pi === 0 ? 'IFC' : (spreads.slice(0,si).reduce((a,s)=>a+s.pages.length,0)+pi+(si>0?0:0));
+      // simple page number display
+      inner += `<div class="page-number">${nums[pi]}</div>`;
+
+      p.innerHTML = inner;
+      pagesEl.appendChild(p);
+    });
+
+    el.appendChild(pagesEl);
+    grid.appendChild(el);
+  });
+
+  // Add spread button
+  const addBtn = document.createElement('div');
+  addBtn.className = 'add-spread-btn';
+  addBtn.onclick = addSpread;
+  addBtn.innerHTML = '<span style="font-size:22px;font-weight:300">+</span> Lägg till uppslag';
+  grid.appendChild(addBtn);
+
+  updateStats();
+}
+
+function updateStats() {
+  const allPages = spreads.flatMap(s => s.pages);
+  const total = allPages.length;
+  const ads = allPages.filter(p => p.type === 'Annons' || p.type === 'Baksidesannons').length;
+  const editorial = allPages.filter(p => p.type === 'Redaktionell' || p.type === 'Helsida').length;
+  const empty = allPages.filter(p => !p.title && !p.type).length;
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="stat-value">${total}</span>Sidor totalt</div>
+    <div class="stat"><span class="stat-value">${ads}</span>Annonser</div>
+    <div class="stat"><span class="stat-value">${editorial}</span>Redaktionell</div>
+    <div class="stat"><span class="stat-value">${empty}</span>Ej planerade</div>
+  `;
+  document.getElementById('page-count-display').textContent = `${total} sidor · ${spreads.length} uppslag`;
+}
+
+// ─── SPREADS ─────────────────────────────────────────────────────────────────
+function addSpread() {
+  spreads.push({ id: uid(), pages: [
+    { id: uid(), title: '', type: '', note: '', color: activeColor },
+    { id: uid(), title: '', type: '', note: '', color: activeColor }
+  ]});
+  saveToStorage(true);
+  render();
+}
+
+function removeSpread(spreadId) {
+  if (spreads.length <= 1) return;
+  if (!confirm('Ta bort detta uppslag?')) return;
+  spreads = spreads.filter(s => s.id !== spreadId);
+  saveToStorage(true);
+  render();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(spreadId, pageId) {
+  editingPageId = { spreadId, pageId };
+  const spread = spreads.find(s => s.id === spreadId);
+  const page = spread.pages.find(p => p.id === pageId);
+
+  document.getElementById('modal-title').value = page.title || '';
+  document.getElementById('modal-type').value = page.type || '';
+  document.getElementById('modal-note').value = page.note || '';
+  modalColor = page.color || 'pink';
+
+  document.querySelectorAll('.color-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.color === modalColor);
+  });
+
+  const si = spreads.indexOf(spread);
+  const pi = spread.pages.indexOf(page);
+  document.getElementById('modal-page-info').textContent = `Uppslag ${si+1} · Sida ${pi+1}`;
+
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-title').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingPageId = null;
+}
+
+function savePage() {
+  if (!editingPageId) return;
+  const { spreadId, pageId } = editingPageId;
+  const spread = spreads.find(s => s.id === spreadId);
+  const page = spread.pages.find(p => p.id === pageId);
+
+  page.title = document.getElementById('modal-title').value.trim();
+  page.type = document.getElementById('modal-type').value;
+  page.note = document.getElementById('modal-note').value.trim();
+  page.color = modalColor;
+
+  closeModal();
+  saveToStorage(true);
+  render();
+}
+
+function clearPage() {
+  if (!editingPageId) return;
+  const { spreadId, pageId } = editingPageId;
+  const spread = spreads.find(s => s.id === spreadId);
+  const page = spread.pages.find(p => p.id === pageId);
+  page.title = ''; page.type = ''; page.note = ''; page.color = 'pink';
+  closeModal();
+  saveToStorage(true);
+  render();
+}
+
+function selectModalColor(color, el) {
+  modalColor = color;
+  document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// close on overlay click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Enter to save
+document.getElementById('modal-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') savePage();
+});
+
+// ─── TOOLBAR COLOR ────────────────────────────────────────────────────────────
+function setActiveColor(color, el) {
+  activeColor = color;
+  document.querySelectorAll('.color-btn').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+function saveToStorage(silent) {
+  const data = {
+    edition: document.getElementById('edition-input').value,
+    spreads
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if (!silent) showToast('Sparad ✓');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background:'#1a1a1a', color:'#fff', padding:'10px 20px',
+    borderRadius:'8px', fontFamily:'Syne,sans-serif', fontSize:'13px',
+    fontWeight:'600', zIndex:'9999', opacity:'0', transition:'opacity 0.2s'
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity = '1'; });
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 300);
+  }, 2000);
+}
+
+// ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
+function exportJSON() {
+  const data = {
+    edition: document.getElementById('edition-input').value,
+    spreads
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `redaktionsplan-${Date.now()}.json`;
+  a.click();
+}
+
+function importJSON() {
+  document.getElementById('import-file').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      spreads = data.spreads || [];
+      document.getElementById('edition-input').value = data.edition || '';
+      saveToStorage(true);
+      render();
+      showToast('Importerad ✓');
+    } catch {
+      alert('Ogiltig fil.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─── AUTO-SAVE on edition name change ────────────────────────────────────────
+document.getElementById('edition-input').addEventListener('input', () => saveToStorage(true));
+
+// ─── START ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
