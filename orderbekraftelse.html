@@ -69,6 +69,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .print-btn:hover{background:#2a4a2a}
 
 @media print {
+  @page{margin:1cm;size:A4}
   body{background:white;padding:0}
   .wrap{max-width:100%}
   #form-section{display:none!important}
@@ -355,7 +356,7 @@ function generateOrder() {
     const num = document.getElementById('antal_nummer').value.trim() || '–';
     pris = parseInt(document.getElementById('avtalat_pris').value) || 0;
     listpris = calcListpris(pris);
-    produktNamn = 'Hållbar Omställning – ' + (PROD_LABELS[p] || p) + ', ' + num + ' nummer';
+    produktNamn = 'Hållbar Omställning – ' + (PROD_LABELS[p] || p) + ', ' + num;
     rows = buildRow(produktNamn, listpris, pris);
   }
 
