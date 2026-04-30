@@ -84,7 +84,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="form-section">
   <div class="card">
     <div class="header">
-      <div class="badge">Hållbar Omställning</div>
+      <div class="badge">Hållbar Omställning & Dagens Medarbetare</div>
       <h1>Skapa orderbekräftelse</h1>
       <p>Fyll i kunduppgifter och välj produkt – bekräftelsen genereras direkt.</p>
     </div>
@@ -148,6 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="radio-option"><input type="radio" name="produkt" id="p_helsida" value="helsida" onchange="updateProdukt()"><label for="p_helsida">Grafisk helsida</label></div>
         <div class="radio-option"><input type="radio" name="produkt" id="p_halvsida" value="halvsida" onchange="updateProdukt()"><label for="p_halvsida">Grafisk halvsida</label></div>
         <div class="radio-option"><input type="radio" name="produkt" id="p_digitalt" value="digitalt" onchange="updateProdukt()"><label for="p_digitalt">Digitalt paket HO</label></div>
+        <div class="radio-option"><input type="radio" name="produkt" id="p_dm" value="dm" onchange="updateProdukt()"><label for="p_dm">Dagens Medarbetare – Mediapaket</label></div>
       </div>
       <div class="error-msg" id="err-produkt">Välj produkt</div>
     </div>
@@ -156,7 +157,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="section-med-nummer" style="display:none">
       <div class="field">
         <label>Antal nummer</label>
-        <input type="text" id="antal_nummer" placeholder="t.ex. 2" oninput="updateNotes()">
+        <input type="text" id="antal_nummer" placeholder="t.ex. 1, 2, 3..." oninput="updateNotes()">
       </div>
       <div class="field">
         <label>Avtalat pris (kr exkl. moms)</label>
@@ -168,6 +169,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- Digitalt paket -->
     <div id="section-digitalt" style="display:none">
       <div class="price-display visible">Fast pris: 19 900 kr exkl. moms</div>
+    </div>
+
+    <!-- Dagens Medarbetare -->
+    <div id="section-dm" style="display:none">
+      <div class="field">
+        <label>Avtalat pris (kr exkl. moms)</label>
+        <input type="number" id="dm_pris" placeholder="t.ex. 14900">
+        <div class="hint">Skriv in det pris du kommit överens om med kunden.</div>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -271,6 +281,7 @@ function updateProdukt() {
   const medNummer = ['redaktionell','helsida','halvsida'].includes(p);
   document.getElementById('section-med-nummer').style.display = medNummer ? 'block' : 'none';
   document.getElementById('section-digitalt').style.display = p === 'digitalt' ? 'block' : 'none';
+  document.getElementById('section-dm').style.display = p === 'dm' ? 'block' : 'none';
   if (p === 'digitalt') {
     document.getElementById('anteckningar').value = NOTES_TEMPLATES.digitalt;
   } else {
@@ -281,7 +292,8 @@ function updateProdukt() {
 function updateNotes() {
   const p = document.querySelector('input[name="produkt"]:checked')?.value;
   if (!p || p === 'digitalt') return;
-  const n = parseInt(document.getElementById('antal_nummer').value) || 1;
+  const nRaw = document.getElementById('antal_nummer').value.trim();
+  const n = parseInt(nRaw) || 1;
   const tmpl = NOTES_TEMPLATES[p];
   if (tmpl) document.getElementById('anteckningar').value = tmpl(n);
 }
@@ -301,6 +313,7 @@ function calcListpris(pris) {
 }
 
 function generateOrder() {
+  try {
   // Validate
   let ok = true;
   const required = [
@@ -310,7 +323,8 @@ function generateOrder() {
     ['epost', 'err-epost', () => document.getElementById('epost').value.trim()],
     ['produkt', 'err-produkt', () => !!document.querySelector('input[name="produkt"]:checked')],
   ];
-  required.forEach(([,errId, fn]) => {
+  required.forEach((item) => {
+    const errId = item[1]; const fn = item[2];
     const el = document.getElementById(errId);
     if (!fn()) { el.style.display = 'block'; ok = false; }
     else el.style.display = 'none';
@@ -332,8 +346,13 @@ function generateOrder() {
     listpris = calcListpris(pris);
     produktNamn = 'Digitalt paket Hållbar Omställning';
     rows = buildRow(produktNamn, listpris, pris);
+  } else if (p === 'dm') {
+    pris = parseInt(document.getElementById('dm_pris').value) || 0;
+    listpris = calcListpris(pris);
+    produktNamn = 'Dagens Medarbetare – Mediapaket';
+    rows = buildRow(produktNamn, listpris, pris);
   } else {
-    const num = document.getElementById('antal_nummer').value || '–';
+    const num = document.getElementById('antal_nummer').value.trim() || '–';
     pris = parseInt(document.getElementById('avtalat_pris').value) || 0;
     listpris = calcListpris(pris);
     produktNamn = 'Hållbar Omställning – ' + (PROD_LABELS[p] || p) + ', ' + num + ' nummer';
@@ -368,6 +387,7 @@ function generateOrder() {
   document.getElementById('form-section').style.display = 'none';
   document.getElementById('confirmation').style.display = 'block';
   window.scrollTo(0,0);
+  } catch(e) { alert('Fel: ' + e.message); }
 }
 
 function buildRow(namn, listpris, pris) {
