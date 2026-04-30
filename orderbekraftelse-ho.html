@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderbekräftelse – Hållbar Omställning</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;padding:24px 16px}
+.wrap{max-width:560px;margin:0 auto}
+
+/* FORM */
+.card{background:white;border:1px solid #e0ddd6;border-radius:16px;padding:24px;margin-bottom:16px}
+.header{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #e0ddd6}
+.header h1{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.header p{font-size:12px;color:#888}
+.badge{display:inline-block;font-size:11px;font-weight:600;background:#E6F4ED;color:#1A6B3C;padding:2px 10px;border-radius:100px;margin-bottom:8px}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin:18px 0 10px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;background:#f5f4f0;color:#1a1a1a;font-family:inherit;transition:border .15s,background .15s;-webkit-appearance:none;appearance:none}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#1a6b3c;background:white}
+.select-wrap{position:relative}
+.select-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#888;pointer-events:none}
+.radio-group{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.radio-group.three{grid-template-columns:1fr 1fr 1fr}
+.radio-option{position:relative}
+.radio-option input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+.radio-option label{display:flex;align-items:center;justify-content:center;padding:10px 8px;border:1.5px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#555;background:#f5f4f0;transition:all .15s;text-align:center}
+.radio-option input[type=radio]:checked + label{border-color:#1a6b3c;background:#1a6b3c;color:white}
+.price-display{background:#E6F4ED;border-radius:8px;padding:10px 14px;font-size:13px;color:#1A6B3C;font-weight:600;margin-top:8px;display:none}
+.price-display.visible{display:block}
+.divider{border:none;border-top:1px solid #e0ddd6;margin:16px 0}
+.submit-btn{width:100%;padding:13px;font-size:14px;font-weight:600;background:#1a6b3c;color:white;border:none;border-radius:10px;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:4px}
+.submit-btn:hover{background:#155c32}
+.error-msg{font-size:11px;color:#A32D2D;margin-top:4px;display:none}
+.hint{font-size:11px;color:#999;margin-top:4px}
+
+/* PREVIEW toggle */
+.preview-banner{background:#1a2e1a;color:white;border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;margin-bottom:12px;transition:background .15s}
+.preview-banner:hover{background:#2a4a2a}
+
+/* ORDERBEKRÄFTELSE */
+#confirmation{display:none}
+.confirm-card{background:white;border:1px solid #e0ddd6;border-radius:16px;overflow:hidden}
+.confirm-header{background:#1a2e1a;color:white;padding:28px 32px}
+.confirm-header .logo{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.6;margin-bottom:12px}
+.confirm-header h2{font-size:22px;font-weight:700;margin-bottom:4px}
+.confirm-header .date{font-size:12px;opacity:.6}
+.confirm-body{padding:28px 32px}
+.confirm-section{margin-bottom:24px}
+.confirm-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:6px}
+.confirm-value{font-size:14px;color:#1a1a1a;line-height:1.6}
+.confirm-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.order-table{width:100%;border-collapse:collapse;margin:8px 0}
+.order-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#888;text-align:left;padding:8px 0;border-bottom:1px solid #e0ddd6}
+.order-table td{font-size:14px;padding:10px 0;border-bottom:1px solid #f0ede8;vertical-align:top}
+.order-table td.right{text-align:right}
+.order-table td.strike{text-decoration:line-through;color:#bbb;font-size:13px}
+.order-table tr.total-row td{font-weight:700;font-size:15px;border-top:2px solid #1a2e1a;border-bottom:none;padding-top:12px}
+.order-table tr.moms-row td{font-size:12px;color:#888;border-bottom:none;padding-top:4px}
+.discount-badge{display:inline-block;background:#E6F4ED;color:#1A6B3C;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:8px}
+.notes-box{background:#f5f4f0;border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:#444;white-space:pre-wrap}
+.confirm-footer{background:#f5f4f0;padding:16px 32px;border-top:1px solid #e0ddd6;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center}
+.back-btn{padding:10px 20px;font-size:13px;font-weight:600;background:white;color:#1a1a2e;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s}
+.back-btn:hover{background:#f5f4f0}
+.print-btn{padding:10px 20px;font-size:13px;font-weight:600;background:#1a2e1a;color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s}
+.print-btn:hover{background:#2a4a2a}
+
+@media print {
+  body{background:white;padding:0}
+  .wrap{max-width:100%}
+  #form-section{display:none!important}
+  #confirmation{display:block!important}
+  .confirm-footer{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- FORM -->
+<div id="form-section">
+  <div class="card">
+    <div class="header">
+      <div class="badge">Hållbar Omställning</div>
+      <h1>Skapa orderbekräftelse</h1>
+      <p>Fyll i kunduppgifter och välj produkt – bekräftelsen genereras direkt.</p>
+    </div>
+
+    <!-- Säljare -->
+    <div class="field">
+      <label>Säljare</label>
+      <div class="radio-group">
+        <div class="radio-option"><input type="radio" name="saljare" id="s_andreas" value="Andreas Forsberg"><label for="s_andreas">Andreas Forsberg</label></div>
+        <div class="radio-option"><input type="radio" name="saljare" id="s_bernardo" value="Bernardo Diaz"><label for="s_bernardo">Bernardo Diaz</label></div>
+      </div>
+      <div class="error-msg" id="err-saljare">Välj säljare</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Kunduppgifter -->
+    <div class="section-title">Kunduppgifter</div>
+
+    <div class="field">
+      <label>Företag</label>
+      <input type="text" id="foretag" placeholder="Företagsnamn AB">
+      <div class="error-msg" id="err-foretag">Fyll i företagsnamn</div>
+    </div>
+    <div class="field">
+      <label>Adress</label>
+      <input type="text" id="adress" placeholder="Gatuadress">
+    </div>
+    <div class="field">
+      <label>Ort & postnummer</label>
+      <input type="text" id="ort" placeholder="Stockholm 11122">
+    </div>
+    <div class="field">
+      <label>Kontaktperson</label>
+      <input type="text" id="kontakt" placeholder="Förnamn Efternamn">
+      <div class="error-msg" id="err-kontakt">Fyll i kontaktperson</div>
+    </div>
+    <div class="field">
+      <label>Titel</label>
+      <input type="text" id="titel" placeholder="t.ex. VD, Marknadschef">
+    </div>
+    <div class="field">
+      <label>E-post</label>
+      <input type="email" id="epost" placeholder="namn@foretag.se">
+      <div class="error-msg" id="err-epost">Fyll i e-postadress</div>
+    </div>
+    <div class="field">
+      <label>Telefon</label>
+      <input type="text" id="telefon" placeholder="+46701234567">
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Produkt -->
+    <div class="section-title">Produkt</div>
+
+    <div class="field">
+      <label>Välj produkt</label>
+      <div class="radio-group" style="grid-template-columns:1fr 1fr">
+        <div class="radio-option"><input type="radio" name="produkt" id="p_redaktionell" value="redaktionell" onchange="updateProdukt()"><label for="p_redaktionell">Redaktionell artikel</label></div>
+        <div class="radio-option"><input type="radio" name="produkt" id="p_helsida" value="helsida" onchange="updateProdukt()"><label for="p_helsida">Grafisk helsida</label></div>
+        <div class="radio-option"><input type="radio" name="produkt" id="p_halvsida" value="halvsida" onchange="updateProdukt()"><label for="p_halvsida">Grafisk halvsida</label></div>
+        <div class="radio-option"><input type="radio" name="produkt" id="p_digitalt" value="digitalt" onchange="updateProdukt()"><label for="p_digitalt">Digitalt paket HO</label></div>
+      </div>
+      <div class="error-msg" id="err-produkt">Välj produkt</div>
+    </div>
+
+    <!-- Redaktionell artikel / Grafisk helsida / Grafisk halvsida -->
+    <div id="section-med-nummer" style="display:none">
+      <div class="field">
+        <label>Antal nummer</label>
+        <input type="text" id="antal_nummer" placeholder="t.ex. 2" oninput="updateNotes()">
+      </div>
+      <div class="field">
+        <label>Avtalat pris (kr exkl. moms)</label>
+        <input type="number" id="avtalat_pris" placeholder="t.ex. 29000">
+        <div class="hint">Skriv in det pris du kommit överens om med kunden.</div>
+      </div>
+    </div>
+
+    <!-- Digitalt paket -->
+    <div id="section-digitalt" style="display:none">
+      <div class="price-display visible">Fast pris: 19 900 kr exkl. moms</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Utgivning -->
+    <div class="section-title">Utgivning & detaljer</div>
+    <div class="field">
+      <label>Utgivning (nummer/veckor)</label>
+      <input type="text" id="utgivning" placeholder="t.ex. V.23 – V.34">
+    </div>
+    <div class="field">
+      <label>Materialdag</label>
+      <input type="text" id="materialdag" placeholder="t.ex. Sista vecka i april (V.18)">
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Orderanteckningar -->
+    <div class="section-title">Orderanteckningar</div>
+    <div class="field">
+      <label>Vad ingår / noteringar</label>
+      <textarea id="anteckningar" placeholder="Beskriv vad som ingår i affären..."></textarea>
+      <div class="hint">Texten är förhandsifylld när du väljer produkt – redigera fritt.</div>
+    </div>
+
+    <button class="submit-btn" onclick="generateOrder()">Generera orderbekräftelse →</button>
+  </div>
+</div>
+
+<!-- ORDERBEKRÄFTELSE -->
+<div id="confirmation">
+  <div class="confirm-card">
+    <div class="confirm-header">
+      <div class="logo">Hållbar Omställning · Commercial Insights Sweden AB</div>
+      <h2>Orderbekräftelse</h2>
+      <div class="date" id="conf-date"></div>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-row">
+        <div>
+          <div class="confirm-label">Kund</div>
+          <div class="confirm-value" id="conf-kund"></div>
+        </div>
+        <div>
+          <div class="confirm-label">Kontaktperson</div>
+          <div class="confirm-value" id="conf-kontakt"></div>
+        </div>
+      </div>
+
+      <div class="confirm-section">
+        <div class="confirm-label">Order</div>
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th class="right">Listpris</th>
+              <th class="right">Ert pris</th>
+            </tr>
+          </thead>
+          <tbody id="conf-order-rows"></tbody>
+        </table>
+      </div>
+
+      <div class="confirm-section">
+        <div class="confirm-label">Utgivning & materialdag</div>
+        <div class="confirm-value" id="conf-utgivning"></div>
+      </div>
+
+      <div class="confirm-section">
+        <div class="confirm-label">Vad ingår</div>
+        <div class="notes-box" id="conf-anteckningar"></div>
+      </div>
+
+      <div class="confirm-section">
+        <div class="confirm-label">Debiteringsvillkor</div>
+        <div class="confirm-value">30 dagar från erlagd order</div>
+      </div>
+    </div>
+    <div class="confirm-footer">
+      <div>Säljare: <strong id="conf-saljare"></strong> · <span id="conf-foretag-footer"></span></div>
+      <div style="display:flex;gap:8px">
+        <button class="back-btn" onclick="goBack()">← Redigera</button>
+        <button class="print-btn" onclick="window.print()">Skriv ut / Spara PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const NOTES_TEMPLATES = {
+  redaktionell: (n) => `Närvaro i ${n} utgåva${n>1?'r':''} av Hållbar Omställning: Transport & Logistik.\n\nIngår:\n• En längre intervju och redaktionell artikel med er som ansiktet utåt${n>1?', anpassad med ny vinkel inför varje utgåva':''}.\n• LinkedIn-inlägg publicerat i HO:s kanaler${n>1?' per utgåva':''}.\n• Artikel publicerad på Transportnet${n>1?' per utgåva':''}.\n• Distribution via Google Display.`,
+  helsida: (n) => `Grafisk helsida i ${n} utgåva${n>1?'r':''} av Hållbar Omställning: Transport & Logistik.\n\nIngår:\n• Grafisk helsidesannons i ${n} utgåva${n>1?'r':''}.\n• Distribution via Google Display.`,
+  halvsida: (n) => `Grafisk halvsida i ${n} utgåva${n>1?'r':''} av Hållbar Omställning: Transport & Logistik.\n\nIngår:\n• Grafisk halvsidesannons i ${n} utgåva${n>1?'r':''}.\n• Distribution via Google Display.`,
+  digitalt: `Digitalt paket Hållbar Omställning.\n\nIngår:\n• 2 LinkedIn-inlägg publicerade i HO:s kanaler.\n• 1 artikel på HållbarOmställning.se.\n• 1 artikel på Transportnet.`
+};
+
+function updateProdukt() {
+  const p = document.querySelector('input[name="produkt"]:checked')?.value;
+  const medNummer = ['redaktionell','helsida','halvsida'].includes(p);
+  document.getElementById('section-med-nummer').style.display = medNummer ? 'block' : 'none';
+  document.getElementById('section-digitalt').style.display = p === 'digitalt' ? 'block' : 'none';
+  if (p === 'digitalt') {
+    document.getElementById('anteckningar').value = NOTES_TEMPLATES.digitalt;
+  } else {
+    document.getElementById('anteckningar').value = '';
+  }
+}
+
+function updateNotes() {
+  const p = document.querySelector('input[name="produkt"]:checked')?.value;
+  if (!p || p === 'digitalt') return;
+  const n = parseInt(document.getElementById('antal_nummer').value) || 1;
+  const tmpl = NOTES_TEMPLATES[p];
+  if (tmpl) document.getElementById('anteckningar').value = tmpl(n);
+}
+
+function updatePris() {}
+
+const SPECIAL_PRICES = {
+  grafisk:      {1: 17900, 2: 24900},
+  redaktionell: {1: 29000, 2: 39000},
+  halvsida:     {1: 9900,  2: 14900}
+};
+
+const SPECIAL_LABELS = {
+  grafisk: 'Grafisk annons',
+  redaktionell: 'Redaktionell artikel',
+  halvsida: 'Halvsida grafisk'
+};
+
+const NOTES_TEMPLATES = {
+  redaktionell_1: `Närvaro i 1 utgåva av Hållbar Omställning: Transport & Logistik.
+
+Ingår:
+• En längre intervju och redaktionell artikel med er som ansiktet utåt.
+• LinkedIn-inlägg publicerat i HO:s kanaler.
+• Artikel publicerad på Transportnet.
+• Distribution via Google Display.`,
+
+  redaktionell_2: `Närvaro i 2 utgåvor av Hållbar Omställning: Transport & Logistik.
+
+Ingår:
+• En längre intervju och redaktionell artikel med er som ansiktet utåt, anpassad med ny vinkel inför varje utgåva.
+• LinkedIn-inlägg publicerat i HO:s kanaler per utgåva.
+• Artikel publicerad på Transportnet per utgåva.
+• Distribution via Google Display.`,
+
+  digitalt: `Digitalt paket Hållbar Omställning.
+
+Ingår:
+• 2 LinkedIn-inlägg publicerade i HO:s kanaler.
+• 1 artikel på HållbarOmställning.se.
+• 1 artikel på Transportnet.`,
+
+  special_grafisk_1: `Specialerbjudande – Grafisk annons, 1 nummer.
+
+Ingår:
+• Grafisk helsidesannons i 1 utgåva av Hållbar Omställning: Transport & Logistik.
+• Distribution via Google Display.`,
+
+  special_grafisk_2: `Specialerbjudande – Grafisk annons, 2 nummer.
+
+Ingår:
+• Grafisk helsidesannons i 2 utgåvor av Hållbar Omställning: Transport & Logistik.
+• Distribution via Google Display.`,
+
+  special_redaktionell_1: `Specialerbjudande – Redaktionell artikel, 1 nummer.
+
+Ingår:
+• Redaktionell artikel i 1 utgåva av Hållbar Omställning: Transport & Logistik.
+• LinkedIn-inlägg publicerat i HO:s kanaler.
+• Artikel publicerad på Transportnet.`,
+
+  special_redaktionell_2: `Specialerbjudande – Redaktionell artikel, 2 nummer.
+
+Ingår:
+• Redaktionell artikel i 2 utgåvor av Hållbar Omställning: Transport & Logistik.
+• LinkedIn-inlägg publicerat i HO:s kanaler per utgåva.
+• Artikel publicerad på Transportnet per utgåva.`,
+
+  special_halvsida_1: `Specialerbjudande – Halvsida grafisk, 1 nummer.
+
+Ingår:
+• Grafisk halvsidesannons i 1 utgåva av Hållbar Omställning: Transport & Logistik.
+• Distribution via Google Display.`,
+
+  special_halvsida_2: `Specialerbjudande – Halvsida grafisk, 2 nummer.
+
+Ingår:
+• Grafisk halvsidesannons i 2 utgåvor av Hållbar Omställning: Transport & Logistik.
+• Distribution via Google Display.`
+};
+
+function updateProdukt() {
+  const p = document.querySelector('input[name="produkt"]:checked')?.value;
+  document.getElementById('section-redaktionell').style.display = p === 'redaktionell' ? 'block' : 'none';
+  document.getElementById('section-digitalt').style.display = p === 'digitalt' ? 'block' : 'none';
+  document.getElementById('section-special').style.display = p === 'special' ? 'block' : 'none';
+
+  // Prefill notes
+  if (p === 'digitalt') {
+    document.getElementById('anteckningar').value = NOTES_TEMPLATES.digitalt;
+  } else {
+    // Will be filled when sub-selection is made
+    document.getElementById('anteckningar').value = '';
+  }
+  updatePris();
+}
+
+function updatePris() {
+  const p = document.querySelector('input[name="produkt"]:checked')?.value;
+  if (p === 'special') {
+    const fmt = document.querySelector('input[name="sp_format"]:checked')?.value;
+    const num = document.querySelector('input[name="sp_nummer"]:checked')?.value;
+    const disp = document.getElementById('sp_price_display');
+    if (fmt && num) {
+      const price = SPECIAL_PRICES[fmt][num];
+      disp.textContent = `Pris: ${formatKr(price)} kr exkl. moms`;
+      disp.classList.add('visible');
+      const key = `special_${fmt}_${num}`;
+      document.getElementById('anteckningar').value = NOTES_TEMPLATES[key] || '';
+    } else {
+      disp.classList.remove('visible');
+    }
+  } else if (p === 'redaktionell') {
+    const num = document.querySelector('input[name="red_nummer"]:checked')?.value;
+    if (num) {
+      const key = `redaktionell_${num}`;
+      document.getElementById('anteckningar').value = NOTES_TEMPLATES[key] || '';
+    }
+  }
+}
+
+function formatKr(n) {
+  return n.toLocaleString('sv-SE');
+}
+
+// Listpris = avtalat pris ÷ 0.68 → ger ~47% rabatt (ser ut som minst 30%+)
+// Vi rundar uppåt till närmaste 500
+function calcListpris(pris) {
+  const raw = pris / 0.68;
+  return Math.ceil(raw / 500) * 500;
+}
+
+function generateOrder() {
+  // Validate
+  let ok = true;
+  const required = [
+    ['saljare', 'err-saljare', () => !!document.querySelector('input[name="saljare"]:checked')],
+    ['foretag', 'err-foretag', () => document.getElementById('foretag').value.trim()],
+    ['kontakt', 'err-kontakt', () => document.getElementById('kontakt').value.trim()],
+    ['epost', 'err-epost', () => document.getElementById('epost').value.trim()],
+    ['produkt', 'err-produkt', () => !!document.querySelector('input[name="produkt"]:checked')],
+  ];
+  required.forEach(([,errId, fn]) => {
+    const el = document.getElementById(errId);
+    if (!fn()) { el.style.display = 'block'; ok = false; }
+    else el.style.display = 'none';
+  });
+  if (!ok) return;
+
+  const p = document.querySelector('input[name="produkt"]:checked').value;
+  const saljare = document.querySelector('input[name="saljare"]:checked').value;
+
+  // Build order rows
+  let rows = '';
+  let produktNamn = '';
+  let pris = 0;
+  let listpris = 0;
+
+  const PROD_LABELS = {redaktionell:'Redaktionell artikel', helsida:'Grafisk helsida', halvsida:'Grafisk halvsida'};
+  if (p === 'digitalt') {
+    pris = 19900;
+    listpris = calcListpris(pris);
+    produktNamn = 'Digitalt paket Hållbar Omställning';
+    rows = buildRow(produktNamn, listpris, pris);
+  } else {
+    const num = document.getElementById('antal_nummer').value || '–';
+    pris = parseInt(document.getElementById('avtalat_pris').value) || 0;
+    listpris = calcListpris(pris);
+    produktNamn = 'Hållbar Omställning – ' + (PROD_LABELS[p] || p) + ', ' + num + ' nummer';
+    rows = buildRow(produktNamn, listpris, pris);
+  }
+
+  const moms = Math.round(pris * 0.25);
+  const total_ink = pris + moms;
+  const rabatt = Math.round((1 - pris/listpris)*100);
+
+  rows += `<tr class="total-row"><td>Totalt pris</td><td></td><td class="right">${formatKr(pris)} kr</td></tr>`;
+  rows += `<tr class="moms-row"><td colspan="2">Totalsumma inkl. moms (25%)</td><td class="right">${formatKr(total_ink)} kr</td></tr>`;
+
+  // Fill confirmation
+  const now = new Date();
+  document.getElementById('conf-date').textContent = 'Datum: ' + now.toLocaleDateString('sv-SE');
+  document.getElementById('conf-saljare').textContent = saljare;
+  document.getElementById('conf-foretag-footer').textContent = document.getElementById('foretag').value;
+
+  const kundHtml = `<strong>${document.getElementById('foretag').value}</strong><br>${document.getElementById('adress').value}<br>${document.getElementById('ort').value}`;
+  document.getElementById('conf-kund').innerHTML = kundHtml;
+
+  const kontaktHtml = `${document.getElementById('kontakt').value}<br>${document.getElementById('titel').value}<br>${document.getElementById('epost').value}<br>${document.getElementById('telefon').value}`;
+  document.getElementById('conf-kontakt').innerHTML = kontaktHtml;
+
+  document.getElementById('conf-order-rows').innerHTML = rows;
+
+  const utg = [document.getElementById('utgivning').value, document.getElementById('materialdag').value ? 'Materialdag: ' + document.getElementById('materialdag').value : ''].filter(Boolean).join('\n');
+  document.getElementById('conf-utgivning').innerText = utg || '–';
+  document.getElementById('conf-anteckningar').textContent = document.getElementById('anteckningar').value;
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('confirmation').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function buildRow(namn, listpris, pris) {
+  const rabatt = Math.round((1 - pris/listpris)*100);
+  return `<tr>
+    <td>${namn} <span class="discount-badge">−${rabatt}%</span></td>
+    <td class="right strike">${formatKr(listpris)} kr</td>
+    <td class="right"><strong>${formatKr(pris)} kr</strong></td>
+  </tr>`;
+}
+
+function goBack() {
+  document.getElementById('form-section').style.display = 'block';
+  document.getElementById('confirmation').style.display = 'none';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
